@@ -3,9 +3,9 @@
 <title>Static Call Graph - [Canon_timer\Canon_timer.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Canon_timer\Canon_timer.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Mon Oct 01 01:12:02 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Mon Oct 01 20:59:41 2018
 <BR><P>
-<H3>Maximum Stack Usage =        216 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        208 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 main &rArr; ssd1306_Init &rArr; ssd1306_UpdateScreen &rArr; ssd1306_WriteCommand &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
 <P>
@@ -151,7 +151,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;itoa
 </UL>
 
-<P><STRONG><a name="[65]"></a>strlen</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, strlen.o(.text))
+<P><STRONG><a name="[66]"></a>strlen</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, strlen.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;reverse
 </UL>
 
@@ -186,8 +186,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[59]"></a>HAL_GPIO_TogglePin</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, stm32f0xx_hal_gpio.o(i.HAL_GPIO_TogglePin))
-<BR><BR>[Called By]<UL><LI><a href="#[16]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIM17_IRQHandler
-<LI><a href="#[14]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIM14_IRQHandler
+<BR><BR>[Called By]<UL><LI><a href="#[14]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIM14_IRQHandler
 </UL>
 
 <P><STRONG><a name="[4f]"></a>HAL_GPIO_WritePin</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, stm32f0xx_hal_gpio.o(i.HAL_GPIO_WritePin))
@@ -238,7 +237,7 @@ Global Symbols
 <LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_RequestMemoryWrite
 <LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GetTick
 </UL>
-<BR>[Called By]<UL><LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteCommand
+<BR>[Called By]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteCommand
 <LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_UpdateScreen
 </UL>
 
@@ -302,7 +301,7 @@ Global Symbols
 <LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_InitTick
 </UL>
 
-<P><STRONG><a name="[62]"></a>HAL_PWR_EnterSTOPMode</STRONG> (Thumb, 44 bytes, Stack size 0 bytes, stm32f0xx_hal_pwr.o(i.HAL_PWR_EnterSTOPMode))
+<P><STRONG><a name="[63]"></a>HAL_PWR_EnterSTOPMode</STRONG> (Thumb, 44 bytes, Stack size 0 bytes, stm32f0xx_hal_pwr.o(i.HAL_PWR_EnterSTOPMode))
 <BR><BR>[Called By]<UL><LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -546,7 +545,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f030x6.o(RESET)
 </UL>
-<P><STRONG><a name="[15]"></a>TIM16_IRQHandler</STRONG> (Thumb, 96 bytes, Stack size 8 bytes, stm32f0xx_it.o(i.TIM16_IRQHandler))
+<P><STRONG><a name="[15]"></a>TIM16_IRQHandler</STRONG> (Thumb, 106 bytes, Stack size 8 bytes, stm32f0xx_it.o(i.TIM16_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = TIM16_IRQHandler &rArr; HAL_TIM_IRQHandler
 </UL>
 <BR>[Calls]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_IRQHandler
@@ -556,11 +555,10 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f030x6.o(RESET)
 </UL>
-<P><STRONG><a name="[16]"></a>TIM17_IRQHandler</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, stm32f0xx_it.o(i.TIM17_IRQHandler))
+<P><STRONG><a name="[16]"></a>TIM17_IRQHandler</STRONG> (Thumb, 26 bytes, Stack size 8 bytes, stm32f0xx_it.o(i.TIM17_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = TIM17_IRQHandler &rArr; HAL_TIM_IRQHandler
 </UL>
 <BR>[Calls]<UL><LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_IRQHandler
-<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_TogglePin
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f030x6.o(RESET)
 </UL>
@@ -599,19 +597,20 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[1a]"></a>main</STRONG> (Thumb, 782 bytes, Stack size 32 bytes, main.o(i.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 216<LI>Call Chain = main &rArr; ssd1306_Init &rArr; ssd1306_UpdateScreen &rArr; ssd1306_WriteCommand &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
+<P><STRONG><a name="[1a]"></a>main</STRONG> (Thumb, 908 bytes, Stack size 24 bytes, main.o(i.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 208<LI>Call Chain = main &rArr; ssd1306_Init &rArr; ssd1306_UpdateScreen &rArr; ssd1306_WriteCommand &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
 </UL>
-<BR>[Calls]<UL><LI><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteString
+<BR>[Calls]<UL><LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteString
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteCommand
 <LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_UpdateScreen
-<LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_SetCursor
+<LI><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_SetCursor
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_Init
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_Fill
 <LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Encoder_Start
 <LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Stop_IT
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start_IT
 <LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Init
-<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_PWR_EnterSTOPMode
+<LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_PWR_EnterSTOPMode
 <LI><a href="#[32]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
 <LI><a href="#[3f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_EnableIRQ
 <LI><a href="#[2d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Init
@@ -629,7 +628,7 @@ Global Symbols
 <P><STRONG><a name="[5d]"></a>reverse</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, main.o(i.reverse))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = reverse
 </UL>
-<BR>[Calls]<UL><LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
+<BR>[Calls]<UL><LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strlen
 </UL>
 <BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;itoa
 </UL>
@@ -650,7 +649,7 @@ Global Symbols
 <P><STRONG><a name="[5f]"></a>ssd1306_Init</STRONG> (Thumb, 202 bytes, Stack size 8 bytes, ssd1306.o(i.ssd1306_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 184<LI>Call Chain = ssd1306_Init &rArr; ssd1306_UpdateScreen &rArr; ssd1306_WriteCommand &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
 </UL>
-<BR>[Calls]<UL><LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteCommand
+<BR>[Calls]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteCommand
 <LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_UpdateScreen
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_Fill
 <LI><a href="#[22]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Delay
@@ -658,7 +657,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[63]"></a>ssd1306_SetCursor</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, ssd1306.o(i.ssd1306_SetCursor))
+<P><STRONG><a name="[64]"></a>ssd1306_SetCursor</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, ssd1306.o(i.ssd1306_SetCursor))
 <BR><BR>[Called By]<UL><LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -666,7 +665,7 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 176<LI>Call Chain = ssd1306_UpdateScreen &rArr; ssd1306_WriteCommand &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
 </UL>
 <BR>[Calls]<UL><LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Write
-<LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteCommand
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteCommand
 </UL>
 <BR>[Called By]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_Init
 <LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -677,10 +676,20 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_DrawPixel
 </UL>
-<BR>[Called By]<UL><LI><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteString
+<BR>[Called By]<UL><LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteString
 </UL>
 
-<P><STRONG><a name="[64]"></a>ssd1306_WriteString</STRONG> (Thumb, 44 bytes, Stack size 20 bytes, ssd1306.o(i.ssd1306_WriteString))
+<P><STRONG><a name="[62]"></a>ssd1306_WriteCommand</STRONG> (Thumb, 32 bytes, Stack size 24 bytes, ssd1306.o(i.ssd1306_WriteCommand))
+<BR><BR>[Stack]<UL><LI>Max Depth = 144<LI>Call Chain = ssd1306_WriteCommand &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
+</UL>
+<BR>[Calls]<UL><LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Write
+</UL>
+<BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_UpdateScreen
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_Init
+<LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[65]"></a>ssd1306_WriteString</STRONG> (Thumb, 44 bytes, Stack size 20 bytes, ssd1306.o(i.ssd1306_WriteString))
 <BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = ssd1306_WriteString &rArr; ssd1306_WriteChar &rArr; ssd1306_DrawPixel
 </UL>
 <BR>[Calls]<UL><LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_WriteChar
@@ -717,15 +726,6 @@ Local Symbols
 <LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIMEx_MasterConfigSynchronization
 </UL>
 <BR>[Called By]<UL><LI><a href="#[1a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-</UL>
-
-<P><STRONG><a name="[66]"></a>ssd1306_WriteCommand</STRONG> (Thumb, 32 bytes, Stack size 24 bytes, ssd1306.o(i.ssd1306_WriteCommand))
-<BR><BR>[Stack]<UL><LI>Max Depth = 144<LI>Call Chain = ssd1306_WriteCommand &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
-</UL>
-<BR>[Calls]<UL><LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Write
-</UL>
-<BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_UpdateScreen
-<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ssd1306_Init
 </UL>
 
 <P><STRONG><a name="[4d]"></a>I2C_Flush_TXDR</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, stm32f0xx_hal_i2c.o(i.I2C_Flush_TXDR))

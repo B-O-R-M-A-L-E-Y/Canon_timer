@@ -59,8 +59,8 @@ TIM_HandleTypeDef htim17;
 /* --------------------------- Private variables -----------------------------*/
 
 AUTOMATE_STATES current_state = config_seconds;
-uint16_t set_seconds = 5;
-uint16_t set_num_shots = 5;
+uint16_t set_seconds = 3;
+uint16_t set_num_shots = 3;
 uint16_t tmp_seconds = 5, tmp_num_shots = 5;
 
 uint8_t update_screen_flag = 0, gate_flag = 0;
@@ -153,6 +153,12 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
     //HAL_IWDG_Refresh(&hiwdg);
+    
+    if(__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_HSE)
+    {
+      HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_SET);
+    }
+    
     if (update_screen_flag)
     {
       ssd1306_Fill(Black);
@@ -169,6 +175,7 @@ int main(void)
       
       ssd1306_Fill(Black);
       ssd1306_UpdateScreen();
+      ssd1306_WriteCommand(0xAE); // OLED Off
       
       GPIO_InitStruct.Pin = ENC_BUTTON_PIN;
       GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING_FALLING;
@@ -180,9 +187,9 @@ int main(void)
       HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
       HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN|LED_RED_PIN|GATE_PIN|FOCUS_PIN, GPIO_PIN_RESET);
-
-      HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
       
+      HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
+      ssd1306_WriteCommand(0xAF);
       // Exit from STOP procedure
       SystemClock_Config();
 
@@ -254,17 +261,23 @@ int main(void)
       if(gate_flag)
       {
         // Toggle Gate
+        HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
-        HAL_Delay(2);
+        HAL_TIM_Base_Stop_IT(&htim14);
+        HAL_Delay(500);
+        __HAL_TIM_SET_COUNTER(&htim14, 0);
+        HAL_TIM_Base_Start_IT(&htim14);
         gate_flag = 0;
         // If not last shot, toggle Focus again
         if(tmp_num_shots != 0)
         {
           HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
+          HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
         }
         else
         {
           HAL_TIM_Base_Stop_IT(&htim14);
+          HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
           current_state = config_seconds;
           update_screen_flag = 1;
         }

@@ -190,8 +190,8 @@ void TIM14_IRQHandler(void)
       return;
     }
     tmp_seconds--;
+    HAL_GPIO_TogglePin(GPIOA, LED_RED_PIN);
   }
-  HAL_GPIO_TogglePin(GPIOA, LED_GREEN_PIN);
   /* USER CODE END TIM14_IRQn 1 */
 }
 
@@ -218,6 +218,7 @@ void TIM16_IRQHandler(void)
       __HAL_TIM_SET_COUNTER(&htim14, 0);
       HAL_TIM_Base_Start_IT(&htim14);
       HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
       return;
     }
     if(current_state == config_seconds)
@@ -244,7 +245,6 @@ void TIM17_IRQHandler(void)
   {
     seconds_counter++;
   }
-  HAL_GPIO_TogglePin(GPIOA, LED_RED_PIN);
   /* USER CODE END TIM17_IRQn 1 */
 }
 
