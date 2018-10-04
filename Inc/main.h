@@ -44,7 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
-
+#include "stdint.h"
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
@@ -66,11 +66,30 @@
 
 #define   STOP_TIME_SEC     10         
 
-typedef enum{
-  config_seconds=0,
-  config_num_shots,
-  running_timer
+#define   FONT_HEIGHT       10
+#define   FONT_WIDTH        7
+#define   INDENT            7
+#define   SYMBOLS_NUMBER    SSD1306_WIDTH/FONT_WIDTH
+
+#define   NUMBER_OF_MENU_ITEMS    4
+
+typedef enum{ menu_navigation = 0,      // Choosing menu item
+              config_exposition_min,    // Configure exposition time
+              config_exposition_sec,
+              config_num_shots,         // Configure number of shots
+              config_interval_min,      // Configure interval between shots
+              config_interval_sec,
+              running_timer,             // Timer for gate is running now
+              running_interval
 } AUTOMATE_STATES;
+
+typedef enum{ exposition = 0,
+              number,
+              interval,
+              start
+} CURSOR_STATES;
+
+void Convert_time(uint16_t*, uint16_t*);
 
 /* USER CODE END Private defines */
 

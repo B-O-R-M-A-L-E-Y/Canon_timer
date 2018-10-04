@@ -58,17 +58,30 @@ TIM_HandleTypeDef htim17;
 /* USER CODE BEGIN PV */
 /* --------------------------- Private variables -----------------------------*/
 
-AUTOMATE_STATES current_state = config_seconds;
-uint16_t set_seconds = 3;
-uint16_t set_num_shots = 3;
-uint16_t tmp_seconds = 5, tmp_num_shots = 5;
+AUTOMATE_STATES current_state = menu_navigation;
+CURSOR_STATES current_cursor = exposition;
+
+// Exposition parameters
+uint16_t set_exp_minutes = 0, set_exp_sec = 3;
+uint16_t tmp_exp_minutes, tmp_exp_sec;
+// Number of shots
+uint16_t set_num_shots = 3, tmp_num_shots;
+// Interval paramters
+uint16_t set_int_minutes = 0, set_int_sec = 5;
+uint16_t tmp_int_minutes, tmp_int_sec;
+
+
 
 uint8_t update_screen_flag = 0, gate_flag = 0;
 
 uint32_t seconds_counter = 0;
 
-char buffer[5];
+char *Menu_Items[]={"Exp:               ",
+                    "Num:               ",
+                    "Int:               ",
+                    "Start              "};
 
+char buffer[5];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -86,6 +99,9 @@ static void MX_TIM17_Init(void);
 
 void reverse(char s[]);
 void itoa(int n, char s[]);
+                    
+void Menu(void);
+void Convert_time(uint16_t* minutes, uint16_t* seconds);
 
 /* USER CODE END PFP */
 
@@ -142,7 +158,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim17);
 
   ssd1306_Init();
-
+  current_cursor = exposition;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -153,11 +169,9 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
     //HAL_IWDG_Refresh(&hiwdg);
-    
-    if(__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_HSE)
-    {
-      HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_SET);
-    }
+     
+    if(__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_HSE) HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_SET);
+    else HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_RESET);
     
     if (update_screen_flag)
     {
@@ -173,8 +187,6 @@ int main(void)
       
       GPIO_InitTypeDef GPIO_InitStruct;
       
-      ssd1306_Fill(Black);
-      ssd1306_UpdateScreen();
       ssd1306_WriteCommand(0xAE); // OLED Off
       
       GPIO_InitStruct.Pin = ENC_BUTTON_PIN;
@@ -189,75 +201,24 @@ int main(void)
       HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN|LED_RED_PIN|GATE_PIN|FOCUS_PIN, GPIO_PIN_RESET);
       
       HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
-      ssd1306_WriteCommand(0xAF);
+      //HAL_PWR_EnterSTANDBYMode();
+      
       // Exit from STOP procedure
       SystemClock_Config();
+      ssd1306_WriteCommand(0xAF);
 
       GPIO_InitStruct.Pin = ENC_BUTTON_PIN;
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
       GPIO_InitStruct.Pull = GPIO_PULLDOWN;
       HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
       
-      current_state = config_seconds;
+      current_state = menu_navigation;
     }
     
-    if (current_state != running_timer)
+    Menu();
+    
+    if (current_state == running_timer)
     {
-      if (current_state == config_seconds)
-      {
-        ssd1306_SetCursor(0, 0);
-        ssd1306_WriteString("->Sec:     ", Font_11x18, White);
-        itoa(set_seconds, buffer);
-        ssd1306_SetCursor(88, 0);
-        ssd1306_WriteString(buffer, Font_11x18, White);
-        ssd1306_WriteString("    ", Font_11x18, White);
-        
-        ssd1306_SetCursor(0, 18);
-        ssd1306_WriteString("Num:     ", Font_11x18, White);
-        itoa(set_num_shots, buffer);
-        ssd1306_SetCursor(66, 18);
-        ssd1306_WriteString(buffer, Font_11x18, White);
-        ssd1306_WriteString("    ", Font_11x18, White);
-        ssd1306_UpdateScreen();
-      }
-      if (current_state == config_num_shots)
-      {
-        ssd1306_SetCursor(0, 0);
-        ssd1306_WriteString("Sec:     ", Font_11x18, White);
-        itoa(set_seconds, buffer);
-        ssd1306_SetCursor(66, 0);
-        ssd1306_WriteString(buffer, Font_11x18, White);
-        ssd1306_WriteString("    ", Font_11x18, White);
-        
-        ssd1306_SetCursor(0, 18);
-        ssd1306_WriteString("->Num:     ", Font_11x18, White);
-        itoa(set_num_shots, buffer);
-        ssd1306_SetCursor(88, 18);
-        ssd1306_WriteString(buffer, Font_11x18, White);
-        ssd1306_WriteString("    ", Font_11x18, White);
-        ssd1306_UpdateScreen();
-      }
-    }
-    else if (current_state == running_timer)
-    {
-      ssd1306_SetCursor(0, 0);
-      ssd1306_WriteString("Sec:     ", Font_11x18, White);
-      itoa(tmp_seconds, buffer);
-      ssd1306_SetCursor(66, 0);
-      ssd1306_WriteString(buffer, Font_11x18, White);
-      ssd1306_WriteString("     ", Font_11x18, White);
-      
-      ssd1306_SetCursor(0, 18);
-      ssd1306_WriteString("Num:     ", Font_11x18, White);
-      itoa(tmp_num_shots, buffer);
-      ssd1306_SetCursor(66, 18);
-      ssd1306_WriteString(buffer, Font_11x18, White);
-      ssd1306_WriteString("     ", Font_11x18, White);
-      
-      ssd1306_SetCursor(0, 36);
-      ssd1306_WriteString("  Running", Font_11x18, White);
-      ssd1306_UpdateScreen();
-      
       if(gate_flag)
       {
         // Toggle Gate
@@ -278,12 +239,11 @@ int main(void)
         {
           HAL_TIM_Base_Stop_IT(&htim14);
           HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
-          current_state = config_seconds;
+          current_state = menu_navigation;
           update_screen_flag = 1;
         }
       }
-      
-    } 
+    }
   }
   /* USER CODE END 3 */
 
@@ -522,35 +482,130 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-/* переворачиваем строку s на месте */
+// Reverse string
 void reverse(char s[])
 {
-    int i, j;
-    char c;
+  int i, j;
+  char c;
 
-    for (i = 0, j = strlen(s)-1; i<j; i++, j--)
-    {
-        c = s[i];
-        s[i] = s[j];
-        s[j] = c;
-    }
+  for (i = 0, j = strlen(s)-1; i<j; i++, j--)
+  {
+    c = s[i];
+    s[i] = s[j];
+    s[j] = c;
+  }
 }
- /* конвертируем n в символы в s */
 
+// Convert number n into char[] s
 void itoa(int n, char s[])
 {
-     int i, sign;
- 
-     if ((sign = n) < 0)  /* записываем знак */
-         n = -n;          /* делаем n положительным числом */
-     i = 0;
-     do {       /* генерируем цифры в обратном порядке */
-         s[i++] = n % 10 + '0';   /* берем следующую цифру */
-     } while ((n /= 10) > 0);     /* удаляем */
-     if (sign < 0)
-         s[i++] = '-';
-     s[i] = '\0';
-     reverse(s);
+  int i, sign;
+
+  if ((sign = n) < 0)  /* записываем знак */
+    n = -n;          /* делаем n положительным числом */
+  i = 0;
+  do {       /* генерируем цифры в обратном порядке */
+    s[i++] = n % 10 + '0';   /* берем следующую цифру */
+  } while ((n /= 10) > 0);     /* удаляем */
+  if (sign < 0)
+    s[i++] = '-';
+  s[i] = '\0';
+  reverse(s);
+}
+
+// Generate and update menu
+void Menu(void)
+{
+  if (current_state != running_timer)
+  {
+    for (int i=0; i<NUMBER_OF_MENU_ITEMS; i++)
+    {
+      ssd1306_SetCursor(0, i*FONT_HEIGHT);
+      if(current_cursor == i) ssd1306_WriteString("->", Font_7x10, White);
+      ssd1306_WriteString(Menu_Items[i], Font_7x10, White);
+      switch (i)
+      {
+        case exposition:
+          ssd1306_SetCursor(FONT_WIDTH*INDENT, i*FONT_HEIGHT);
+          itoa(set_exp_minutes, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("`  ", Font_7x10, White);
+          itoa(set_exp_sec, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("``", Font_7x10, White);
+          break;
+        case number:
+          ssd1306_SetCursor(FONT_WIDTH*INDENT, i*FONT_HEIGHT);
+          itoa(set_num_shots, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          break;
+        case interval:
+          ssd1306_SetCursor(FONT_WIDTH*INDENT, i*FONT_HEIGHT);
+          itoa(set_int_minutes, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("`  ", Font_7x10, White);
+          itoa(set_int_sec, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("``", Font_7x10, White);
+          break;
+        case start:
+          break;
+      }
+    }
+  }
+  if (current_state == running_timer)
+  {
+    for (int i=0; i<NUMBER_OF_MENU_ITEMS-1; i++)
+    {
+      ssd1306_SetCursor(0, i*FONT_HEIGHT);
+      ssd1306_WriteString(Menu_Items[i], Font_7x10, White);
+      switch (i)
+      {
+        case exposition:
+          ssd1306_SetCursor(FONT_WIDTH*INDENT, i*FONT_HEIGHT);
+          itoa(tmp_exp_minutes, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("`  ", Font_7x10, White);
+          itoa(tmp_exp_sec, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("``", Font_7x10, White);
+          break;
+        case number:
+          ssd1306_SetCursor(FONT_WIDTH*INDENT, i*FONT_HEIGHT);
+          itoa(tmp_num_shots, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          break;
+        case interval:
+          ssd1306_SetCursor(FONT_WIDTH*INDENT, i*FONT_HEIGHT);
+          itoa(tmp_int_minutes, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("`  ", Font_7x10, White);
+          itoa(tmp_int_sec, buffer);
+          ssd1306_WriteString(buffer, Font_7x10, White);
+          ssd1306_WriteString("``", Font_7x10, White);
+          break;
+        case start:
+          break;
+      }
+    }
+    ssd1306_SetCursor(0, NUMBER_OF_MENU_ITEMS*FONT_HEIGHT);
+    ssd1306_WriteString("     Running      ", Font_7x10, White);
+  }
+  ssd1306_UpdateScreen();
+}
+
+
+void Convert_time(uint16_t* minutes, uint16_t* seconds)
+{
+  //uint16_t tmp_min=*minutes, tmp_sec=*seconds;
+  // Вычитания секунд из минут не происходит т.е. 1 мин. = 60 с.
+  if (*seconds >= 60)
+  {
+    uint16_t tmp_min;
+    tmp_min = (*seconds)/60;
+    *minutes = *minutes+tmp_min;
+    *seconds = *seconds-tmp_min*60;
+  }
 }
 
 /* USER CODE END 4 */

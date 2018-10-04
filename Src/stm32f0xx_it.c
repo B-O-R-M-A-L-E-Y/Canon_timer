@@ -39,9 +39,17 @@
 #include "ssd1306.h"
 
 extern AUTOMATE_STATES current_state;
-extern uint16_t set_seconds;
-extern uint16_t set_num_shots;
-extern uint16_t tmp_seconds, tmp_num_shots;
+extern CURSOR_STATES current_cursor;
+
+// Exposition parameters
+extern uint16_t set_exp_minutes, set_exp_sec;
+extern uint16_t tmp_exp_minutes, tmp_exp_sec;
+// Number of shots
+extern uint16_t set_num_shots, tmp_num_shots;
+// Interval paramters
+extern uint16_t set_int_minutes, set_int_sec;
+extern uint16_t tmp_int_minutes, tmp_int_sec;
+
 extern uint8_t update_screen_flag, gate_flag;
 
 extern uint32_t seconds_counter;
@@ -151,17 +159,33 @@ void TIM3_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
   seconds_counter = 0;
-  if(current_state == config_seconds)
+  uint8_t rule = 0;
+  rule = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3);
+  switch(current_state)
   {
-    __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3) ? set_seconds-- : set_seconds++;
-    return;
+    case menu_navigation:
+      if(rule) current_cursor == exposition ? current_cursor = start : current_cursor--;
+      else current_cursor == start ? current_cursor = exposition : current_cursor++;
+      update_screen_flag = 1;
+      break;
+    case config_exposition_min:
+      rule ? set_exp_minutes-- : set_exp_minutes++;
+      break;
+    case config_exposition_sec:
+      rule ? set_exp_sec-- : set_exp_sec++;
+      break;
+    case config_num_shots:
+      rule ? set_num_shots-- : set_num_shots++;
+      break;
+    case config_interval_min:
+      rule ? set_int_minutes-- : set_int_minutes++;
+      break;
+    case config_interval_sec:
+      rule ? set_int_sec-- : set_int_sec++;
+      break;
+    case running_timer:
+      break;
   }
-  else if (current_state == config_num_shots)
-  {
-    __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3) ? set_num_shots-- : set_num_shots++;
-    return;
-  }
-
   /* USER CODE END TIM3_IRQn 1 */
 }
 
@@ -175,9 +199,10 @@ void TIM14_IRQHandler(void)
   /* USER CODE END TIM14_IRQn 0 */
   HAL_TIM_IRQHandler(&htim14);
   /* USER CODE BEGIN TIM14_IRQn 1 */
+  HAL_GPIO_TogglePin(GPIOA, LED_RED_PIN);
   if (current_state == running_timer)
   {
-    if (tmp_seconds == 0)
+    if (tmp_exp_sec == 0)
     {
       if (tmp_num_shots == 0)
       {
@@ -185,12 +210,22 @@ void TIM14_IRQHandler(void)
         return;
       }
       tmp_num_shots--;
-      tmp_seconds=set_seconds;
+      tmp_exp_sec=set_exp_sec;
       gate_flag = 1;
       return;
     }
-    tmp_seconds--;
-    HAL_GPIO_TogglePin(GPIOA, LED_RED_PIN);
+    tmp_exp_sec--;   
+  }
+  if (current_state == running_interval)
+  {
+    if (tmp_int_sec == 0)
+    {
+      if (tmp_int_minutes == 0)
+      {
+        current_state = running_timer; // CONTINUE HERE
+        
+      }
+    }
   }
   /* USER CODE END TIM14_IRQn 1 */
 }
@@ -209,23 +244,49 @@ void TIM16_IRQHandler(void)
   if (HAL_GPIO_ReadPin(GPIOA, ENC_BUTTON_PIN))
   {
     seconds_counter = 0;
-    if(current_state == config_num_shots)
+    switch (current_state)
     {
-      current_state = running_timer;
-      update_screen_flag = 1;
-      tmp_seconds = set_seconds;
-      tmp_num_shots = set_num_shots;
-      __HAL_TIM_SET_COUNTER(&htim14, 0);
-      HAL_TIM_Base_Start_IT(&htim14);
-      HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
-      return;
-    }
-    if(current_state == config_seconds)
-    {
-      current_state = config_num_shots;
-      //update_screen_flag = 1;
-      return;
+      case menu_navigation:
+        switch(current_cursor)
+        {
+          case exposition:
+            current_state = config_exposition_min;
+            break;
+          case number:
+            current_state = config_num_shots;
+            break;
+          case interval:
+            current_state = config_interval_min;
+            break;
+          case start:
+            current_state = running_timer;
+            update_screen_flag = 1;
+            tmp_exp_sec = set_exp_sec;
+            tmp_num_shots = set_num_shots;
+            __HAL_TIM_SET_COUNTER(&htim14, 0);
+            HAL_TIM_Base_Start_IT(&htim14);
+            HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
+            break;
+        }
+        break;
+      case config_exposition_min:
+        current_state = config_exposition_sec;
+        break;
+      case config_exposition_sec:
+        current_state = menu_navigation;
+        break;
+      case config_num_shots:
+        current_state = menu_navigation;
+        break;
+      case config_interval_min:
+        current_state = config_interval_sec;
+        break;
+      case config_interval_sec:
+        current_state = menu_navigation;
+        break;
+      case running_timer:
+        break;
     }
   }
   /* USER CODE END TIM16_IRQn 1 */
