@@ -54,8 +54,6 @@ extern uint8_t update_screen_flag, gate_flag;
 
 extern uint32_t seconds_counter;
 
-extern TIM_HandleTypeDef htim17;
-
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -65,7 +63,7 @@ extern TIM_HandleTypeDef htim16;
 extern TIM_HandleTypeDef htim17;
 
 /******************************************************************************/
-/*            Cortex-M0 Processor Interruption and Exception Handlers         */ 
+/*            Cortex-M0 Processor Interruption and Exception Handlers         */
 /******************************************************************************/
 
 /**
@@ -185,6 +183,8 @@ void TIM3_IRQHandler(void)
       break;
     case running_timer:
       break;
+    case running_interval:
+      break;
   }
   /* USER CODE END TIM3_IRQn 1 */
 }
@@ -204,17 +204,24 @@ void TIM14_IRQHandler(void)
   {
     if (tmp_exp_sec == 0)
     {
-      if (tmp_num_shots == 0)
+      if (tmp_exp_minutes == 0)
       {
+        if (tmp_num_shots == 0)
+        {
+          gate_flag = 1;
+          return;
+        }
+        tmp_num_shots--;
+        // Check if loops in interrupt
+        HAL_TIM_Base_Stop_IT(&htim14);
         gate_flag = 1;
         return;
       }
-      tmp_num_shots--;
-      tmp_exp_sec=set_exp_sec;
-      gate_flag = 1;
+      tmp_exp_minutes--;
+      tmp_exp_sec = 59;
       return;
     }
-    tmp_exp_sec--;   
+    tmp_exp_sec--;
   }
   if (current_state == running_interval)
   {
@@ -222,10 +229,20 @@ void TIM14_IRQHandler(void)
     {
       if (tmp_int_minutes == 0)
       {
+        tmp_exp_minutes = set_exp_minutes;
+        tmp_exp_sec = set_exp_sec;
+        tmp_int_minutes = set_int_minutes;
+        tmp_int_sec = set_int_sec;
         current_state = running_timer; // CONTINUE HERE
-        
+        HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
+        return;
       }
+      tmp_int_minutes--;
+      tmp_int_sec = 59;
+      return;
     }
+    tmp_int_sec--;
   }
   /* USER CODE END TIM14_IRQn 1 */
 }
@@ -240,7 +257,7 @@ void TIM16_IRQHandler(void)
   /* USER CODE END TIM16_IRQn 0 */
   HAL_TIM_IRQHandler(&htim16);
   /* USER CODE BEGIN TIM16_IRQn 1 */
-  
+
   if (HAL_GPIO_ReadPin(GPIOA, ENC_BUTTON_PIN))
   {
     seconds_counter = 0;
@@ -261,8 +278,11 @@ void TIM16_IRQHandler(void)
           case start:
             current_state = running_timer;
             update_screen_flag = 1;
+            tmp_exp_minutes = set_exp_minutes;
             tmp_exp_sec = set_exp_sec;
             tmp_num_shots = set_num_shots;
+            tmp_int_minutes = set_int_minutes;
+            tmp_int_sec = set_int_sec;
             __HAL_TIM_SET_COUNTER(&htim14, 0);
             HAL_TIM_Base_Start_IT(&htim14);
             HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
@@ -274,6 +294,7 @@ void TIM16_IRQHandler(void)
         current_state = config_exposition_sec;
         break;
       case config_exposition_sec:
+        Convert_time(&set_exp_minutes, &set_exp_sec);
         current_state = menu_navigation;
         break;
       case config_num_shots:
@@ -283,9 +304,12 @@ void TIM16_IRQHandler(void)
         current_state = config_interval_sec;
         break;
       case config_interval_sec:
+        Convert_time(&set_int_minutes, &set_int_sec);
         current_state = menu_navigation;
         break;
       case running_timer:
+        break;
+      case running_interval:
         break;
     }
   }
@@ -302,7 +326,7 @@ void TIM17_IRQHandler(void)
   /* USER CODE END TIM17_IRQn 0 */
   HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
-  if (current_state != running_timer)
+  if (current_state != running_timer && current_state != running_interval)
   {
     seconds_counter++;
   }

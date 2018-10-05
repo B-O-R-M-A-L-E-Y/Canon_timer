@@ -5,7 +5,7 @@
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
+  * USER CODE END. Other portions of this file, whether
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
@@ -99,7 +99,7 @@ static void MX_TIM17_Init(void);
 
 void reverse(char s[]);
 void itoa(int n, char s[]);
-                    
+
 void Menu(void);
 void Convert_time(uint16_t* minutes, uint16_t* seconds);
 
@@ -116,7 +116,7 @@ void Convert_time(uint16_t* minutes, uint16_t* seconds);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  
+
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -143,20 +143,21 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
-  
+
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(TIM3_IRQn);
   HAL_TIM_Base_Start_IT(&htim3);
-  
+
 
   // Seconds Counter startup duty
   HAL_TIM_Base_Start_IT(&htim14);
   HAL_TIM_Base_Stop_IT(&htim14);
   HAL_TIM_Base_Start_IT(&htim16);
-  
-  HAL_TIM_Base_Start_IT(&htim17);
 
+  HAL_TIM_Base_Start_IT(&htim17);
+  
+  HAL_GPIO_WritePin(GPIOA, LED_RED_PIN, GPIO_PIN_RESET);
   ssd1306_Init();
   current_cursor = exposition;
   /* USER CODE END 2 */
@@ -169,41 +170,40 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
     //HAL_IWDG_Refresh(&hiwdg);
-     
+
     if(__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_HSE) HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_SET);
     else HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_RESET);
-    
+
     if (update_screen_flag)
     {
       ssd1306_Fill(Black);
       ssd1306_UpdateScreen();
       update_screen_flag = 0;
     }
-    
-    if (seconds_counter>STOP_TIME_SEC) //if more than 10 s need to stop 
+
+    if (seconds_counter > STOP_TIME_SEC) //if more than 10 s need to stop
     {
       // Entering STOP Mode Procedure
       seconds_counter = 0;
-      
+
       GPIO_InitTypeDef GPIO_InitStruct;
-      
+
       ssd1306_WriteCommand(0xAE); // OLED Off
-      
+
       GPIO_InitStruct.Pin = ENC_BUTTON_PIN;
       GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING_FALLING;
       GPIO_InitStruct.Pull = GPIO_PULLDOWN;
       GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
       HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-      
+
       HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
       HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
       HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN|LED_RED_PIN|GATE_PIN|FOCUS_PIN, GPIO_PIN_RESET);
-      
+
       HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
-      //HAL_PWR_EnterSTANDBYMode();
-      
-      // Exit from STOP procedure
+
+      // Exit from STOP Mode procedure
       SystemClock_Config();
       ssd1306_WriteCommand(0xAF);
 
@@ -211,17 +211,17 @@ int main(void)
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
       GPIO_InitStruct.Pull = GPIO_PULLDOWN;
       HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-      
+
       current_state = menu_navigation;
     }
-    
+
     Menu();
-    
-    if (current_state == running_timer)
+
+    if (current_state == running_timer || current_state == running_interval)
     {
       if(gate_flag)
       {
-        // Toggle Gate
+        // Reset Gate & Focus
         HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
         HAL_TIM_Base_Stop_IT(&htim14);
@@ -229,16 +229,23 @@ int main(void)
         __HAL_TIM_SET_COUNTER(&htim14, 0);
         HAL_TIM_Base_Start_IT(&htim14);
         gate_flag = 0;
-        // If not last shot, toggle Focus again
+        // If not last shot, go to Interval state
         if(tmp_num_shots != 0)
         {
-          HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
-          HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
+          tmp_int_minutes = set_int_minutes;
+          tmp_int_sec = set_int_sec;
+          tmp_exp_minutes = set_exp_minutes;
+          tmp_exp_sec = set_exp_sec;
+          current_state = running_interval;
+          HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
         }
         else
         {
           HAL_TIM_Base_Stop_IT(&htim14);
+          __HAL_TIM_SET_COUNTER(&htim14, 0);
           HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
+          tmp_exp_minutes = set_exp_minutes;
+          tmp_exp_sec = set_exp_sec;
           current_state = menu_navigation;
           update_screen_flag = 1;
         }
@@ -260,7 +267,7 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -271,7 +278,7 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1;
@@ -291,15 +298,15 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Enables the Clock Security System 
+    /**Enables the Clock Security System
     */
   HAL_RCC_EnableCSS();
 
-    /**Configure the Systick interrupt time 
+    /**Configure the Systick interrupt time
     */
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-    /**Configure the Systick 
+    /**Configure the Systick
     */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
@@ -325,14 +332,14 @@ static void MX_I2C1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Analogue filter 
+    /**Configure Analogue filter
     */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Digital filter 
+    /**Configure Digital filter
     */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
   {
@@ -417,7 +424,7 @@ static void MX_TIM16_Init(void)
   htim16.Instance = TIM16;
   htim16.Init.Prescaler = 799;
   htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim16.Init.Period = 2500;
+  htim16.Init.Period = 2700;
   htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim16.Init.RepetitionCounter = 0;
   htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -446,9 +453,9 @@ static void MX_TIM17_Init(void)
 
 }
 
-/** Configure pins as 
-        * Analog 
-        * Input 
+/** Configure pins as
+        * Analog
+        * Input
         * Output
         * EVENT_OUT
         * EXTI
@@ -516,7 +523,7 @@ void itoa(int n, char s[])
 // Generate and update menu
 void Menu(void)
 {
-  if (current_state != running_timer)
+  if (current_state != running_timer && current_state != running_interval)
   {
     for (int i=0; i<NUMBER_OF_MENU_ITEMS; i++)
     {
@@ -553,7 +560,7 @@ void Menu(void)
       }
     }
   }
-  if (current_state == running_timer)
+  else
   {
     for (int i=0; i<NUMBER_OF_MENU_ITEMS-1; i++)
     {
@@ -597,8 +604,6 @@ void Menu(void)
 
 void Convert_time(uint16_t* minutes, uint16_t* seconds)
 {
-  //uint16_t tmp_min=*minutes, tmp_sec=*seconds;
-  // Вычитания секунд из минут не происходит т.е. 1 мин. = 60 с.
   if (*seconds >= 60)
   {
     uint16_t tmp_min;
@@ -635,7 +640,7 @@ void _Error_Handler(char *file, int line)
   * @retval None
   */
 void assert_failed(uint8_t* file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

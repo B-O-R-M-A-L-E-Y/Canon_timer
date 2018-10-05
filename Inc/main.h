@@ -6,7 +6,7 @@
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
+  * USER CODE END. Other portions of this file, whether
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
@@ -51,7 +51,7 @@
 
 /* ########################## Assert Selection ############################## */
 /**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
+  * @brief Uncomment the line below to expanse the "assert_param" macro in the
   *        HAL drivers code
   */
 /* #define USE_FULL_ASSERT    1U */
@@ -64,7 +64,7 @@
 #define   LED_RED_PIN       GPIO_PIN_12
 #define   ENC_BUTTON_PIN    GPIO_PIN_5
 
-#define   STOP_TIME_SEC     10         
+#define   STOP_TIME_SEC     10
 
 #define   FONT_HEIGHT       10
 #define   FONT_WIDTH        7
@@ -79,7 +79,7 @@ typedef enum{ menu_navigation = 0,      // Choosing menu item
               config_num_shots,         // Configure number of shots
               config_interval_min,      // Configure interval between shots
               config_interval_sec,
-              running_timer,             // Timer for gate is running now
+              running_timer,            // Timer for gate is running now
               running_interval
 } AUTOMATE_STATES;
 
