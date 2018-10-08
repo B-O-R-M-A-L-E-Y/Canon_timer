@@ -54,6 +54,8 @@ extern uint8_t update_screen_flag, gate_flag;
 
 extern uint32_t seconds_counter;
 
+uint8_t continuous_press_num = 0;
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -164,7 +166,7 @@ void TIM3_IRQHandler(void)
     case menu_navigation:
       if(rule) current_cursor == exposition ? current_cursor = start : current_cursor--;
       else current_cursor == start ? current_cursor = exposition : current_cursor++;
-      update_screen_flag = 1;
+      //update_screen_flag = 1;
       break;
     case config_exposition_min:
       rule ? set_exp_minutes-- : set_exp_minutes++;
@@ -233,7 +235,7 @@ void TIM14_IRQHandler(void)
         tmp_exp_sec = set_exp_sec;
         tmp_int_minutes = set_int_minutes;
         tmp_int_sec = set_int_sec;
-        current_state = running_timer; // CONTINUE HERE
+        current_state = running_timer;
         HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
         HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
         return;
@@ -308,11 +310,34 @@ void TIM16_IRQHandler(void)
         current_state = menu_navigation;
         break;
       case running_timer:
+        if (continuous_press_num > EXIT_FROM_RUNNING_TIME)
+        {
+          current_state = menu_navigation;
+          update_screen_flag = 1;
+          HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
+          HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
+          HAL_TIM_Base_Stop_IT(&htim14);
+          __HAL_TIM_SET_COUNTER(&htim14, 0);
+          HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
+        }
+        else continuous_press_num++;
         break;
       case running_interval:
+        if (continuous_press_num > EXIT_FROM_RUNNING_TIME)
+        {
+          current_state = menu_navigation;
+          update_screen_flag = 1;
+          HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
+          HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
+          HAL_TIM_Base_Stop_IT(&htim14);
+          __HAL_TIM_SET_COUNTER(&htim14, 0);
+          HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
+        }
+        else continuous_press_num++;
         break;
     }
   }
+  else continuous_press_num = 0;
   /* USER CODE END TIM16_IRQn 1 */
 }
 

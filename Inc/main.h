@@ -65,6 +65,7 @@
 #define   ENC_BUTTON_PIN    GPIO_PIN_5
 
 #define   STOP_TIME_SEC     10
+#define   EXIT_FROM_RUNNING_TIME   3000/270 // 3000ms/interrupt_time
 
 #define   FONT_HEIGHT       10
 #define   FONT_WIDTH        7
