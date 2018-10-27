@@ -72,7 +72,7 @@ uint16_t tmp_int_minutes, tmp_int_sec;
 
 
 
-uint8_t update_screen_flag = 0, gate_flag = 0;
+uint8_t update_screen_flag = 0, gate_flag = 0, exiting_run = 0;
 
 uint32_t seconds_counter = 0;
 
@@ -180,15 +180,16 @@ int main(void)
       ssd1306_UpdateScreen();
       update_screen_flag = 0;
     }
-
+    
     if (seconds_counter > STOP_TIME_SEC) //if more than 10 s need to stop
     {
       // Entering STOP Mode Procedure
       seconds_counter = 0;
 
       GPIO_InitTypeDef GPIO_InitStruct;
+      
 
-      ssd1306_WriteCommand(0xAE); // OLED Off
+      ssd1306_WriteCommand(0xAE);       // OLED Off
 
       GPIO_InitStruct.Pin = ENC_BUTTON_PIN;
       GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING_FALLING;
@@ -205,7 +206,7 @@ int main(void)
 
       // Exit from STOP Mode procedure
       SystemClock_Config();
-      ssd1306_WriteCommand(0xAF);
+      ssd1306_WriteCommand(0xAF);      // OLED On
 
       GPIO_InitStruct.Pin = ENC_BUTTON_PIN;
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -251,6 +252,17 @@ int main(void)
         }
       }
     }
+      
+    if (exiting_run)
+    {
+      HAL_TIM_Base_Stop_IT(&htim16);
+      HAL_Delay(1000);
+      exiting_run = 0;
+      HAL_TIM_Base_Start_IT(&htim16);
+      HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
+    }
+    
   }
   /* USER CODE END 3 */
 

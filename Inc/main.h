@@ -65,7 +65,7 @@
 #define   ENC_BUTTON_PIN    GPIO_PIN_5
 
 #define   STOP_TIME_SEC     10
-#define   EXIT_FROM_RUNNING_TIME   3000/270 // 3000ms/interrupt_time
+#define   EXIT_FROM_RUNNING_TIME   1500/270 // 2000ms/interrupt_time
 
 #define   FONT_HEIGHT       10
 #define   FONT_WIDTH        7
@@ -90,6 +90,7 @@ typedef enum{ exposition = 0,
               start
 } CURSOR_STATES;
 
+void Menu(void);
 void Convert_time(uint16_t*, uint16_t*);
 
 /* USER CODE END Private defines */

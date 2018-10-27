@@ -50,7 +50,7 @@ extern uint16_t set_num_shots, tmp_num_shots;
 extern uint16_t set_int_minutes, set_int_sec;
 extern uint16_t tmp_int_minutes, tmp_int_sec;
 
-extern uint8_t update_screen_flag, gate_flag;
+extern uint8_t update_screen_flag, gate_flag, exiting_run;
 
 extern uint32_t seconds_counter;
 
@@ -319,6 +319,9 @@ void TIM16_IRQHandler(void)
           HAL_TIM_Base_Stop_IT(&htim14);
           __HAL_TIM_SET_COUNTER(&htim14, 0);
           HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
+          ssd1306_Fill(Black);
+          ssd1306_UpdateScreen();
+          exiting_run = 1;
         }
         else continuous_press_num++;
         break;
@@ -332,6 +335,9 @@ void TIM16_IRQHandler(void)
           HAL_TIM_Base_Stop_IT(&htim14);
           __HAL_TIM_SET_COUNTER(&htim14, 0);
           HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
+          ssd1306_Fill(Black);
+          ssd1306_UpdateScreen();
+          exiting_run = 1;
         }
         else continuous_press_num++;
         break;
