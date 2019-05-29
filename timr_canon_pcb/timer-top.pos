@@ -1,0 +1,22 @@
+### Module positions - created on 09/23/18 22:37:40 ###
+### Printed by Pcbnew version kicad 4.0.6
+## Unit = mm, Angle = deg.
+## Side : top
+# Ref     Val            Package                        PosX       PosY       Rot  Side
+C1        10uF           C_0805_HandSoldering       167.5130  -116.0780  270.0000  top
+C2        22uF           C_0805_HandSoldering       153.9240   -93.9800   90.0000  top
+C3        20pF           C_0805_HandSoldering       156.2100   -98.1710    0.0000  top
+C4        20pF           C_0805_HandSoldering       160.9090   -98.1710  180.0000  top
+C5        4.7uF          C_0805_HandSoldering       179.0700  -117.0940   90.0000  top
+C6        100nF          C_0805_HandSoldering       168.7830   -84.7090  270.0000  top
+C7        100nF          C_0805_HandSoldering       169.1640   -90.0430  270.0000  top
+C8        100nF          C_0805_HandSoldering       173.4820   -92.5830  180.0000  top
+D1        LED            LED_0805                   169.7990  -118.3640   90.0000  top
+D2        LED            LED_0805                   153.9240   -87.5030   90.0000  top
+D3        LED            LED_0805                   153.9240   -81.1530   90.0000  top
+J3        USB_OTG        USB_Micro-B                185.0390  -119.1260   90.0000  top
+SW2       SW_Push        SW_SPST_PTS645             170.3070  -104.2670  180.0000  top
+U1        AMS1117-3.3    SOT-223                    160.2740  -108.8390    0.0000  top
+U3        STM32F030K6Tx  LQFP-32_7x7mm_Pitch0.8mm   161.0360   -88.3920   90.0000  top
+U5        MCP73831-2-OT  SOT-23-5                   168.5290  -111.7600    0.0000  top
+## End
