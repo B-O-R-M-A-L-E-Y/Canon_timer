@@ -55,6 +55,8 @@ TIM_HandleTypeDef htim14;
 TIM_HandleTypeDef htim16;
 TIM_HandleTypeDef htim17;
 
+ADC_HandleTypeDef hadc;
+
 /* USER CODE BEGIN PV */
 /* --------------------------- Private variables -----------------------------*/
 
@@ -93,6 +95,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM17_Init(void);
+static void MX_ADC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* ---------------------------- Private function prototypes ------------------*/
@@ -136,6 +139,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+	MX_ADC_Init();
+	HAL_Delay(300);
   MX_I2C1_Init();
   MX_TIM3_Init();
   //MX_IWDG_Init();
@@ -143,7 +148,7 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
-
+	current_state = menu_navigation;
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(TIM3_IRQn);
@@ -154,9 +159,10 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim14);
   HAL_TIM_Base_Stop_IT(&htim14);
   HAL_TIM_Base_Start_IT(&htim16);
+	HAL_ADC_Start(&hadc);
 
   HAL_TIM_Base_Start_IT(&htim17);
-  
+
   HAL_GPIO_WritePin(GPIOA, LED_RED_PIN, GPIO_PIN_RESET);
   ssd1306_Init();
   current_cursor = exposition;
@@ -171,7 +177,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
     //HAL_IWDG_Refresh(&hiwdg);
 
-    if(__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_HSE) HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_SET);
+    if(__HAL_RCC_GET_SYSCLK_SOURCE() == RCC_SYSCLKSOURCE_STATUS_PLLCLK) HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_SET);
     else HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN, GPIO_PIN_RESET);
 
     if (update_screen_flag)
@@ -180,9 +186,10 @@ int main(void)
       ssd1306_UpdateScreen();
       update_screen_flag = 0;
     }
-    
+		
     if (seconds_counter > STOP_TIME_SEC) //if more than 10 s need to stop
     {
+			/*
       // Entering STOP Mode Procedure
       seconds_counter = 0;
 
@@ -200,7 +207,8 @@ int main(void)
       HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
       HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
-      HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN|LED_RED_PIN|GATE_PIN|FOCUS_PIN, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(GPIOA, LED_GREEN_PIN|LED_RED_PIN, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(GPIOB, GATE_PIN|FOCUS_PIN, GPIO_PIN_RESET);
 
       HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFE);
 
@@ -212,19 +220,25 @@ int main(void)
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
       GPIO_InitStruct.Pull = GPIO_PULLDOWN;
       HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
+      
+      // Need Delay to avoid going in interrupt
+      HAL_NVIC_DisableIRQ(TIM3_IRQn);
+      HAL_Delay(800);
+      HAL_NVIC_EnableIRQ(TIM3_IRQn);
+      
       current_state = menu_navigation;
+			*/
+			
     }
 
     Menu();
-
+    
     if (current_state == running_timer || current_state == running_interval)
     {
       if(gate_flag)
       {
         // Reset Gate & Focus
-        HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOB, FOCUS_PIN|GATE_PIN, GPIO_PIN_RESET);
         HAL_TIM_Base_Stop_IT(&htim14);
         HAL_Delay(500);
         __HAL_TIM_SET_COUNTER(&htim14, 0);
@@ -259,10 +273,8 @@ int main(void)
       HAL_Delay(1000);
       exiting_run = 0;
       HAL_TIM_Base_Start_IT(&htim16);
-      HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
-    }
-    
+      HAL_GPIO_WritePin(GPIOB, FOCUS_PIN|GATE_PIN, GPIO_PIN_RESET);
+    }   
   }
   /* USER CODE END 3 */
 
@@ -275,30 +287,34 @@ int main(void)
 void SystemClock_Config(void)
 {
 
+  // --!!!!-- Made now for sysclk 32 MHz to avoid stuck if fast rotating encoder
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-    /**Initializes the CPU, AHB and APB busses clocks
+    /**Initializes the CPU, AHB and APB busses clocks 
     */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL4;
+  RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks
+    /**Initializes the CPU, AHB and APB busses clocks 
     */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -310,15 +326,15 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Enables the Clock Security System
+    /**Enables the Clock Security System 
     */
   HAL_RCC_EnableCSS();
 
-    /**Configure the Systick interrupt time
+    /**Configure the Systick interrupt time 
     */
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-    /**Configure the Systick
+    /**Configure the Systick 
     */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
@@ -436,7 +452,7 @@ static void MX_TIM16_Init(void)
   htim16.Instance = TIM16;
   htim16.Init.Prescaler = 799;
   htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim16.Init.Period = 2700;
+  htim16.Init.Period = 2000;
   htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim16.Init.RepetitionCounter = 0;
   htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -480,12 +496,13 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PA0 PA1 PA11 PA12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_11|GPIO_PIN_12;
+  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -496,6 +513,67 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3|GPIO_PIN_4, GPIO_PIN_RESET);
+  
+  /*Configure GPIO pins : PB3 PB4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+}
+
+/**
+  * @brief ADC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC_Init(void)
+{
+
+  /* USER CODE BEGIN ADC_Init 0 */
+
+  /* USER CODE END ADC_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC_Init 1 */
+
+  /* USER CODE END ADC_Init 1 */
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
+  */
+  hadc.Instance = ADC1;
+  hadc.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+  hadc.Init.Resolution = ADC_RESOLUTION_8B;
+  hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
+  hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc.Init.LowPowerAutoWait = DISABLE;
+  hadc.Init.LowPowerAutoPowerOff = DISABLE;
+  hadc.Init.ContinuousConvMode = ENABLE;
+  hadc.Init.DiscontinuousConvMode = DISABLE;
+  hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc.Init.DMAContinuousRequests = DISABLE;
+  hadc.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  if (HAL_ADC_Init(&hadc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel to be converted. 
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC_Init 2 */
+  /* USER CODE END ADC_Init 2 */
 
 }
 
@@ -571,6 +649,13 @@ void Menu(void)
           break;
       }
     }
+		/*
+		itoa(p, buffer);
+		ssd1306_SetCursor(0, 40);
+		ssd1306_WriteString("Charge:    %", Font_7x10, White);
+		ssd1306_SetCursor(8*FONT_WIDTH, 40);
+		ssd1306_WriteString(buffer, Font_7x10, White);
+		*/
   }
   else
   {
@@ -607,6 +692,13 @@ void Menu(void)
           break;
       }
     }
+		/*
+		itoa(p, buffer);
+		ssd1306_SetCursor(0, 30);
+		ssd1306_WriteString("Charge:    %", Font_7x10, White);
+		ssd1306_SetCursor(8*FONT_WIDTH, 30);
+		ssd1306_WriteString(buffer, Font_7x10, White);
+		*/
     ssd1306_SetCursor(0, NUMBER_OF_MENU_ITEMS*FONT_HEIGHT);
     ssd1306_WriteString("     Running      ", Font_7x10, White);
   }

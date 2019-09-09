@@ -164,24 +164,24 @@ void TIM3_IRQHandler(void)
   switch(current_state)
   {
     case menu_navigation:
-      if(rule) current_cursor == exposition ? current_cursor = start : current_cursor--;
+      if(!rule) current_cursor == exposition ? current_cursor = start : current_cursor--;
       else current_cursor == start ? current_cursor = exposition : current_cursor++;
       //update_screen_flag = 1;
       break;
     case config_exposition_min:
-      rule ? set_exp_minutes-- : set_exp_minutes++;
+      !rule ? set_exp_minutes-- : set_exp_minutes++;
       break;
     case config_exposition_sec:
-      rule ? set_exp_sec-- : set_exp_sec++;
+      !rule ? set_exp_sec-- : set_exp_sec++;
       break;
     case config_num_shots:
-      rule ? set_num_shots-- : set_num_shots++;
+      !rule ? set_num_shots-- : set_num_shots++;
       break;
     case config_interval_min:
-      rule ? set_int_minutes-- : set_int_minutes++;
+      !rule ? set_int_minutes-- : set_int_minutes++;
       break;
     case config_interval_sec:
-      rule ? set_int_sec-- : set_int_sec++;
+      !rule ? set_int_sec-- : set_int_sec++;
       break;
     case running_timer:
       break;
@@ -236,8 +236,7 @@ void TIM14_IRQHandler(void)
         tmp_int_minutes = set_int_minutes;
         tmp_int_sec = set_int_sec;
         current_state = running_timer;
-        HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOB, GATE_PIN|FOCUS_PIN, GPIO_PIN_SET);
         return;
       }
       tmp_int_minutes--;
@@ -287,8 +286,7 @@ void TIM16_IRQHandler(void)
             tmp_int_sec = set_int_sec;
             __HAL_TIM_SET_COUNTER(&htim14, 0);
             HAL_TIM_Base_Start_IT(&htim14);
-            HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(GPIOB, GATE_PIN|FOCUS_PIN, GPIO_PIN_SET);
             break;
         }
         break;
@@ -314,8 +312,7 @@ void TIM16_IRQHandler(void)
         {
           current_state = menu_navigation;
           update_screen_flag = 1;
-          HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
-          HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
+          HAL_GPIO_WritePin(GPIOB, FOCUS_PIN|GATE_PIN, GPIO_PIN_RESET);
           HAL_TIM_Base_Stop_IT(&htim14);
           __HAL_TIM_SET_COUNTER(&htim14, 0);
           HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
@@ -330,8 +327,7 @@ void TIM16_IRQHandler(void)
         {
           current_state = menu_navigation;
           update_screen_flag = 1;
-          HAL_GPIO_WritePin(GPIOA, FOCUS_PIN, GPIO_PIN_RESET);
-          HAL_GPIO_WritePin(GPIOA, GATE_PIN, GPIO_PIN_RESET);
+          HAL_GPIO_WritePin(GPIOB, FOCUS_PIN|GATE_PIN, GPIO_PIN_RESET);
           HAL_TIM_Base_Stop_IT(&htim14);
           __HAL_TIM_SET_COUNTER(&htim14, 0);
           HAL_GPIO_WritePin(GPIOA, LED_RED_PIN,GPIO_PIN_RESET); // 1s LED Off
@@ -357,10 +353,12 @@ void TIM17_IRQHandler(void)
   /* USER CODE END TIM17_IRQn 0 */
   HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
+	/*
   if (current_state != running_timer && current_state != running_interval)
   {
     seconds_counter++;
   }
+	*/
   /* USER CODE END TIM17_IRQn 1 */
 }
 
